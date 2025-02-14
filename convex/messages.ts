@@ -6,11 +6,6 @@ const SHOW_COMMENTS = true;
 export const list = query({
   args: { chatId: v.id("chats") },
   handler: async (ctx, args) => {
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) {
-    //   throw new Error("Not authenticated");
-    // }
-
     const messages = await ctx.db
       .query("messages")
       .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
@@ -121,12 +116,12 @@ export const getLastMessage = query({
       throw new Error("Unauthorized");
     }
 
-    const messages = await ctx.db
+    const lastMessage = await ctx.db
       .query("messages")
       .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
       .order("desc")
       .first();
 
-    return messages;
+    return lastMessage;
   },
 });
