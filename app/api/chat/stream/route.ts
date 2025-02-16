@@ -1,5 +1,6 @@
 import { api } from "@/convex/_generated/api";
 import { getConvexClient } from "@/lib/convex";
+import { submitQuestion } from "@/lib/langgraph";
 import {
   ChatRequestBody,
   SSE_DATA_PREFIX,
@@ -8,6 +9,7 @@ import {
   StreamMessageType,
 } from "@/lib/types";
 import { auth } from "@clerk/nextjs/server";
+import { AIMessage, HumanMessage, ToolMessage } from "@langchain/core/messages";
 import { NextResponse } from "next/server";
 
 function sendSSEMessage(
@@ -49,6 +51,60 @@ export async function POST(req: Request) {
           chatId: chatId,
           content: newMessage,
         });
+
+        const langChainMessages = [
+          ...messages.map((msg)=>msg.role==="user"? new HumanMessage(msg.content):new AIMessage(msg.content)),
+          new HumanMessage(newMessage)
+        ]
+
+        try {
+          const eventStream= await submitQuestion(langChainMessages,chatId);
+          for await (const event of eventStream){
+            console.log({event})
+            
+            if (event.event === "on_chat_model_stream") {
+              const token = event.data.chunk;
+              if (token) {
+                // Access the text property from the AIMessageChunk
+                const text = token.content.at(0)?.["text"];
+                if (text) {
+                  await sendSSEMessage(writer, {
+                    type: StreamMessageType.Token,
+                    token: text,
+                  });
+                }
+              }
+            } else if (event.event === "on_tool_start") {
+              await sendSSEMessage(writer, {
+                type: StreamMessageType.ToolStart,
+                tool: event.name || "unknown",
+                input: event.data.input,
+              });
+            } else if (event.event === "on_tool_end") {
+              const toolMessage = new ToolMessage(event.data.output);
+
+              await sendSSEMessage(writer, {
+                type: StreamMessageType.ToolEnd,
+                tool: toolMessage.lc_kwargs.name || "unknown",
+                output: event.data.output,
+              });
+            }
+            await sendSSEMessage(writer, { type: StreamMessageType.Done });
+
+          }
+          
+        } catch (streamError) {
+          console.error("Error in event stream:", streamError);
+          await sendSSEMessage(writer, {
+            type: StreamMessageType.Error,
+            error:
+              streamError instanceof Error
+                ? streamError.message
+                : "Stream processing failed",
+          });
+          
+        }
+
       } catch (error) {
         console.log("Error in startStream", error);
         return NextResponse.json(
