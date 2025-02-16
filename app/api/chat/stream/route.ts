@@ -112,6 +112,14 @@ export async function POST(req: Request) {
           { status: 500 }
         );
       }
+      finally{
+        try {
+            await writer.close();
+        } catch (error) {
+            console.log("Error in closing writer", error);  
+        } 
+      }
+
     };
     startStream();
     return response;
