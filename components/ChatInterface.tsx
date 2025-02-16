@@ -9,6 +9,8 @@ import { createSSEParser } from "@/lib/SSEParser";
 import { Stream } from "stream";
 import { api } from "@/convex/_generated/api";
 import { getConvexClient } from "@/lib/convex";
+import { MessageBubble } from "./MessageBubble";
+import WelcomeMessage from "./WelcomeMessage";
 
 interface ChatInterfaceProps {
   chatId: Id<"chats">;
@@ -62,6 +64,7 @@ function ChatInterface({ chatId, initialMessages }: ChatInterfaceProps) {
     onChunk: (chunk: string) => Promise<void>
   ) => {
     try {
+       // 🔍 Log raw chunk from LLM
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -88,7 +91,7 @@ function ChatInterface({ chatId, initialMessages }: ChatInterfaceProps) {
     } as Doc<"messages">;
 
     setMessages((prev) => [...prev, optimisticUserMessage]);
-
+    console.log({messages})
     let fullResponse = "";
     try {
       const requestBody: ChatRequestBody = {
@@ -112,6 +115,7 @@ function ChatInterface({ chatId, initialMessages }: ChatInterfaceProps) {
       const reader = response.body.getReader();
 
       await processStream(reader, async (chunk) => {
+      
         const messages = parser.parse(chunk);
         for (const message of messages) {
           switch (message.type) {
@@ -159,7 +163,6 @@ function ChatInterface({ chatId, initialMessages }: ChatInterfaceProps) {
                 throw new Error(message.error);
               }
               break;
-              
 
               case StreamMessageType.Done:
                 // Handle completion of the entire response
@@ -195,13 +198,44 @@ function ChatInterface({ chatId, initialMessages }: ChatInterfaceProps) {
   };
 
   return (
-    <main className="flex flex-col h-[calc(100vh-theme(spacing.16))]">
-      <section className="bg-red-5 flex-1">
-        <div>
+    <main className="flex flex-col h-[calc(100vh-theme(spacing.14))]">
+      {/* Messages container */}
+      <section className="flex-1 overflow-y-auto bg-gray-50 p-2 md:p-0">
+        <div className="max-w-4xl mx-auto p-4 space-y-3">
+          {messages?.length === 0 && <WelcomeMessage />}
+
+          {messages?.map((message: Doc<"messages">) => (
+            <MessageBubble
+              key={message._id}
+              content={message.content}
+              isUser={message.role === "user"}
+            />
+          ))}
+
+          {streamedResponse && <MessageBubble content={streamedResponse} />}
+
+          {/* Loading indicator */}
+          {isLoaded && !streamedResponse && (
+            <div className="flex justify-start animate-in fade-in-0">
+              <div className="rounded-2xl px-4 py-3 bg-white text-gray-900 rounded-bl-none shadow-sm ring-1 ring-inset ring-gray-200">
+                <div className="flex items-center gap-1.5">
+                  {[0.3, 0.15, 0].map((delay, i) => (
+                    <div
+                      key={i}
+                      className="h-1.5 w-1.5 rounded-full bg-gray-400 animate-bounce"
+                      style={{ animationDelay: `-${delay}s` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           <div ref={messageEndRef} />
         </div>
       </section>
-      <footer>
+
+      {/* Input form */}
+      <footer className="border-t bg-white p-4">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto relative">
           <div className="relative flex items-center">
             <input

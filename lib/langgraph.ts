@@ -4,7 +4,6 @@ import {
   HumanMessage,
   trimMessages,
 } from "@langchain/core/messages";
-import { ChatOpenAI } from "@langchain/openai";
 import wxflows from "@wxflows/sdk/langchain";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { MemorySaver } from "@langchain/langgraph";
@@ -20,6 +19,10 @@ import {
   ChatPromptTemplate,
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+
+
+
 
 const trimmer = trimMessages({
   maxTokens: 10,
@@ -38,15 +41,13 @@ const toolClient = new wxflows({
 const tools = await toolClient.lcTools;
 const toolNode = new ToolNode(tools);
 
+
 const initialiseModel = () => {
-  const model = new ChatOpenAI({
-    modelName: "deepseek-chat",
-    openAIApiKey: process.env.DEEPSEEK_API_KEY,
-    configuration: {
-      baseURL: "https://api.deepseek.com/v1", // DeepSeek's API endpoint
-    },
+  const model = new ChatGoogleGenerativeAI({
+    modelName: "gemini-pro",
+    apiKey: process.env.GOOGLE_API_KEY,
     temperature: 0.7,
-    maxTokens: 4096,
+    maxOutputTokens: 4096,
     streaming: true,
     callbacks: [
       {
@@ -55,15 +56,6 @@ const initialiseModel = () => {
         },
         handleLLMEnd: async (output) => {
           console.log("🤖 End LLM call", output);
-          const usage = output.llmOutput?.usage;
-          if (usage) {
-            // DeepSeek uses OpenAI-compatible usage format
-            console.log("📊 Token Usage:", {
-              input_tokens: usage.prompt_tokens,
-              output_tokens: usage.completion_tokens,
-              total_tokens: usage.total_tokens,
-            });
-          }
         },
       },
     ],

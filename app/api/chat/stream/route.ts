@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     const response = new Response(stream.readable, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "text/event-stream",
         Connection: "keep-alive",
         "X-Accel-Buffering": "no",
       },
@@ -60,10 +60,9 @@ export async function POST(req: Request) {
         try {
           const eventStream= await submitQuestion(langChainMessages,chatId);
           for await (const event of eventStream){
-            console.log({event})
-            
             if (event.event === "on_chat_model_stream") {
               const token = event.data.chunk;
+              console.log({token})
               if (token) {
                 // Access the text property from the AIMessageChunk
                 const text = token.content.at(0)?.["text"];
