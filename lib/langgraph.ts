@@ -20,7 +20,7 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-
+import { ChatOllama } from "@langchain/ollama";
 
 
 
@@ -43,11 +43,10 @@ const toolNode = new ToolNode(tools);
 
 
 const initialiseModel = () => {
-  const model = new ChatGoogleGenerativeAI({
-    modelName: "gemini-pro",
-    apiKey: process.env.GOOGLE_API_KEY,
+  const model = new ChatOllama({
+    baseUrl: "http://172.208.52.162:11434", // Your local Ollama server URL
+    model: "llama3.1", // Match this with your Ollama model
     temperature: 0.7,
-    maxOutputTokens: 4096,
     streaming: true,
     callbacks: [
       {
@@ -63,6 +62,7 @@ const initialiseModel = () => {
 
   return model;
 };
+
 
 function shouldContinue(state: typeof MessagesAnnotation.State) {
   const messages = state.messages;

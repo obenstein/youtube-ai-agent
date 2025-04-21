@@ -174,6 +174,7 @@ function ChatInterface({ chatId, initialMessages }: ChatInterfaceProps) {
                   createdAt: Date.now(),
                 } as Doc<"messages">;
               const convex = getConvexClient();
+              console.log({fullResponse})
               await convex.mutation(api.messages.store, {
                 chatId,
                 content: fullResponse,

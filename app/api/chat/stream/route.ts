@@ -62,10 +62,9 @@ export async function POST(req: Request) {
           for await (const event of eventStream){
             if (event.event === "on_chat_model_stream") {
               const token = event.data.chunk;
-              console.log({token})
               if (token) {
                 // Access the text property from the AIMessageChunk
-                const text = token.content.at(0)?.["text"];
+                const text = token.content;
                 if (text) {
                   await sendSSEMessage(writer, {
                     type: StreamMessageType.Token,
