@@ -11,10 +11,10 @@ interface ChatPageProps {
     };
 }
 
-async function ChatPage({
+async function ChatPage({       
     params,
 }: ChatPageProps) {
-    const { chatId } =await params;
+    const { chatId } = params;
     const { userId } = await auth();
 
     if (!userId) {
