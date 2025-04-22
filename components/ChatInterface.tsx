@@ -6,7 +6,6 @@ import { Button } from "./ui/button";
 import { ArrowRight } from "lucide-react";
 import { ChatRequestBody, StreamMessageType } from "@/lib/types";
 import { createSSEParser } from "@/lib/SSEParser";
-import { Stream } from "stream";
 import { api } from "@/convex/_generated/api";
 import { getConvexClient } from "@/lib/convex";
 import { MessageBubble } from "./MessageBubble";

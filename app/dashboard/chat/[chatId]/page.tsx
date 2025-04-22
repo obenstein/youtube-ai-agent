@@ -12,27 +12,27 @@ interface ChatPageProps {
 }
 
 async function ChatPage({
-    params
-}:
-ChatPageProps
-) {
-    const {chatId}= await params;
-    const {userId}= await auth();
+    params,
+}: ChatPageProps) {
+    const { chatId } =await params;
+    const { userId } = await auth();
 
     if (!userId) {
         redirect("/");
     }
     const convex=getConvexClient();
 
-    const initialMessage= await convex.query(api.messages.list,{chatId});
-  return (
-    <div>
+    // Convert chatId to Id<"chats"> type as needed
+    const initialMessages = await convex.query(api.messages.list, { chatId: chatId as Id<"chats"> });
+
+    return (
+        <div>
 <ChatInterface
  chatId={chatId}
- initialMessages={initialMessage}
+ initialMessages={initialMessages}
  /> 
-    </div>
-  );
+        </div>
+    );
 }
 
 export default ChatPage 

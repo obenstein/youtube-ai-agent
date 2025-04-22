@@ -9,7 +9,6 @@ import { Doc, Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import { NavigationContext } from "@/lib/NavigationProvider";
 import { use } from "react";
-import { Query } from "convex/server";
 
 function ChatRow({
   chat,
