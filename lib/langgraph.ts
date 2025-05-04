@@ -54,6 +54,13 @@ const initialiseModel = () => {
         },
         handleLLMEnd: async (output) => {
           console.log("🤖 End LLM call", output);
+          const usage= output.llmOutput?.usage;
+
+          output.generations.map((gen) => {
+            gen.map((message) => {
+              console.log("🤖 LLM message", message);
+            });
+          });
         },
       },
     ],
@@ -66,7 +73,10 @@ const initialiseModel = () => {
 function shouldContinue(state: typeof MessagesAnnotation.State) {
   const messages = state.messages;
   const lastMessage = messages[messages.length - 1] as AIMessage;
+  console.log("Last message:", lastMessage);
+  console.log("Last message type:", lastMessage._getType());
 
+  console.log("Last message tool calls:", lastMessage.tool_calls);
   if (lastMessage.tool_calls?.length) {
     return "tools";
   }
