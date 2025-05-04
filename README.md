@@ -1,6 +1,3 @@
-Here is the updated and cleaned-up version of the README.md file with proper formatting and corrections applied:
-
-```markdown
 # YouTube AI Agent
 
 This is a [Next.js](https://nextjs.org) project that integrates AI-powered tools to assist with various tasks, including processing YouTube transcripts, retrieving data, and interacting with external APIs. The project leverages LangChain, wxflows, and other AI frameworks to create a dynamic and interactive experience.
